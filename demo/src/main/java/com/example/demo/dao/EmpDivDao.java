@@ -1,5 +1,6 @@
 package com.example.demo.dao;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +10,8 @@ import javax.transaction.Transactional;
 
 import org.springframework.stereotype.Repository;
 
+import com.example.demo.entity.NbEmp;
+import com.example.demo.entity.NbEmpParQQchose;
 import com.example.demo.entity.NbEmpParSexe;
 import com.example.demo.entity.StaPrmCivilite;
 @Transactional
@@ -18,19 +21,35 @@ public class EmpDivDao implements IEmpDivDao{
 	@PersistenceContext	
 	private EntityManager entityManager;
 	
-	
-	public List<StaPrmCivilite>  getAllCivilites() {
-		//String hql = "FROM Article as atcl ORDER BY atcl.articleId DESC";
-		//System.out.println(entityManager);
-		 List<StaPrmCivilite>results= entityManager.createNamedQuery("StaPrmCivilite.findAll").getResultList();
-		for (StaPrmCivilite result : results) {
-			System.out.println(result.getCvltCod());
-		}
-		return results;
+	@Override
+	public List<NbEmpParQQchose> nbEmpParQQChose(String query) {
+		List<Object[]> results = entityManager.createNativeQuery(query).getResultList();
+		List<NbEmpParQQchose> l= new ArrayList<NbEmpParQQchose>();
+		NbEmpParQQchose e;
+		
+		String label=null; int count;
+		for (Object[] result : results) {
+			if(result[0]!=null){
+				label=result[0].toString();
+			}else label="undefined";
+		    count = ((Number) result[1]).intValue();
+		    e= new NbEmpParQQchose(label, count);
+		    l.add(e);
+		}   return l;
+		
 	}
 
 	//String hql = "select C.CVLT_DES_LN1, count(E.EMPY_UID) as nb FROM Employe E, Civilite C where C.CVLT_UID=ECVLT_UID group by sexe ";
 	//return (List<Object[]>) entityManager.createQuery(hql).getResultList();
+	
+	@Override
+	public NbEmp nbEmp() {
+		 BigDecimal result = (BigDecimal) entityManager.createNativeQuery("select count(*) from sta_grh_employes where EMPY_TYPEMP=1").getSingleResult();
+		 System.out.println("NbEmp :" +result.intValue());
+					
+		return  new NbEmp(result.intValue());
+	}
+	
 	
 	
 	
@@ -58,8 +77,7 @@ public class EmpDivDao implements IEmpDivDao{
 
 	public static void main(String args[]){
 		EmpDivDao n= new EmpDivDao();
-		//n.nbEmpParSex();
-		n.getAllCivilites();
+
 	}
 	
 	
